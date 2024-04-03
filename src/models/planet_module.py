@@ -1,16 +1,17 @@
-from typing import Any
+from typing import Any, Union
 import torch
 import torch.nn.functional as F
 from transformers import PreTrainedTokenizerFast
 from lightning import LightningModule
 
 from src.models.hub.numformer import Numformer
+from src.models.hub.numformer_mlp import NumformerMLP
 from src.utils.lr_scheduler import LinearWarmupCosineAnnealingLR
 
 class PlanetModule(LightningModule):
     def __init__(
         self,
-        net: Numformer,
+        net: Union[Numformer, NumformerMLP],
         tokenizer_path,
         lr: float = 2e-5,
         beta_1: float = 0.9,
@@ -35,6 +36,7 @@ class PlanetModule(LightningModule):
         self.num_token_id = tokenizer.convert_tokens_to_ids("[NUM]")
         
         self.net = net
+        self.net.set_num_id(self.num_token_id)
         
     def training_step(self, batch: Any, batch_idx: int):
         logit_preds, num_preds = self.net(batch["x"], batch["x_num"])

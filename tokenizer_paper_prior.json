@@ -236,15 +236,6 @@
       "rstrip": false,
       "normalized": true,
       "special": false
-    },
-    {
-      "id": 26,
-      "content": "'planet4':",
-      "single_word": false,
-      "lstrip": false,
-      "rstrip": false,
-      "normalized": true,
-      "special": false
     }
   ],
   "normalizer": null,
