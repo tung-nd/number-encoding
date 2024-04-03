@@ -1,8 +1,4 @@
-from typing import Any, List, Tuple, Dict
-
-import os
-import json
-import numpy as np
+from typing import Any
 import torch
 import torch.nn.functional as F
 from transformers import PreTrainedTokenizerFast
@@ -90,9 +86,9 @@ class PlanetModule(LightningModule):
             self.log(
                 f"val/{key}",
                 value.item(),
-                on_step=True,
-                on_epoch=False,
-                prog_bar=True,
+                on_step=False,
+                on_epoch=True,
+                sync_dist=True,
                 batch_size=batch["x"].size(0),
             )
         
