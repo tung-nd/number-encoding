@@ -142,3 +142,6 @@ cython_debug/
 scratch/
 settings.json
 chkpt.pt
+
+ckpt.pt
+data/
