@@ -8,13 +8,16 @@ import numpy as np
 def make_sim(rstate):
     sim = rebound.Simulation()
     sim.add(m=1.0)
-    nplanet = rstate.randint(2, 6)
+    # nplanet = rstate.randint(2, 6) # github code
+    nplanet = rstate.randint(2, 5) # according to paper
 
     m = rstate.uniform(1e-5, 5e-5, nplanet)
     a_final = rstate.uniform(1.5, 3.0)
     a = np.linspace(1.0, a_final, nplanet)
     e = rstate.uniform(0.0, 0.1, nplanet)
-    theta = rstate.uniform(0.0, 2 * np.pi, nplanet)
+    
+    # theta = rstate.uniform(0.0, 2 * np.pi, nplanet) # github code
+    theta = rstate.uniform(-np.pi/6, np.pi/6, nplanet) # according to paper
 
     # with probability 0.3, set all theta to 0
     if rstate.uniform() < 0.3:
