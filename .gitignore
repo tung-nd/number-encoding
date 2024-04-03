@@ -144,4 +144,6 @@ settings.json
 chkpt.pt
 
 ckpt.pt
-data/
+dataset
+experiments
+src.egg-info

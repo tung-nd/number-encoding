@@ -1,0 +1,92 @@
+seed_everything: 42
+
+# ---------------------------- TRAINER -------------------------------------------
+trainer:
+  default_root_dir: ${oc.env:OUTPUT_DIR,/home/tungnd/xVal/experiments/planet}
+
+  precision: 16
+
+  devices: 1
+  num_nodes: 1
+  accelerator: gpu
+  strategy: ddp
+
+  max_steps: 500000
+  enable_progress_bar: true
+
+  sync_batchnorm: True
+  enable_checkpointing: True
+  num_sanity_val_steps: 1
+
+  # debugging
+  fast_dev_run: false
+
+  logger:
+    class_path: lightning.pytorch.loggers.wandb.WandbLogger
+    init_args:
+      project: 'number-encoding'
+      save_dir: ${trainer.default_root_dir}/xval_default
+      name: xval_default
+
+  callbacks:
+    - class_path: lightning.pytorch.callbacks.LearningRateMonitor
+      init_args:
+        logging_interval: "step"
+
+    - class_path: lightning.pytorch.callbacks.ModelCheckpoint
+      init_args:
+        dirpath: "${trainer.default_root_dir}/xval_default/checkpoints"
+        monitor: "val/loss" # name of the logged metric which determines when model is improving
+        mode: "min" # "max" means higher metric value is better, can be also "min"
+        save_top_k: 1 # save k best models (determined by above metric)
+        save_last: True # additionaly always save model from last epoch
+        verbose: False
+        filename: "epoch_{epoch:03d}"
+        auto_insert_metric_name: False
+
+    - class_path: lightning.pytorch.callbacks.EarlyStopping
+      init_args:
+        monitor: "val/loss" # name of the logged metric which determines when model is improving
+        mode: "min" # "max" means higher metric value is better, can be also "min"
+        patience: 10 # how many validation epochs of not improving until training stops
+        min_delta: 0. # minimum change in the monitored metric needed to qualify as an improvement
+
+    - class_path: lightning.pytorch.callbacks.RichModelSummary
+      init_args:
+        max_depth: -1
+
+    - class_path: lightning.pytorch.callbacks.TQDMProgressBar
+
+# ---------------------------- MODEL -------------------------------------------
+model:
+  tokenizer_path: tokenizer.json
+  lr: 2e-5
+  beta_1: 0.9
+  beta_2: 0.99
+  weight_decay: 1e-5
+  warmup_iterations: 2000
+  max_iterations: 500000
+  warmup_start_lr: 1e-8
+  eta_min: 2e-6
+
+  net:
+    class_path: src.models.hub.numformer.Numformer
+    init_args:
+      vocab_size: 27
+      nhead: 6
+      num_layers: 6
+      d_model: 768
+      dim_feedforward: 3072
+      context_length: 1024
+
+# ---------------------------- DATA -------------------------------------------
+data:
+  dataset_path: dataset/tokenized_ds_all
+  tokenizer_path: tokenizer.json
+  mlm_probability: 0.3
+  train_ratio: 0.8
+  val_ratio: 0.1
+  test_ratio: 0.1
+  batch_size: 64
+  num_workers: 4
+  pin_memory: False

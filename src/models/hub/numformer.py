@@ -17,7 +17,7 @@ class Numformer(nn.Module):
         num_layers=6,
         dim_feedforward=3072,
         dropout=0.1,
-        activation=nn.GELU(),
+        activation="gelu",
         layer_norm_eps=1e-05,
         batch_first=True,
         norm_first=True,
@@ -62,22 +62,3 @@ class Numformer(nn.Module):
         logit_preds = self.lm_head(x)
         num_preds = self.num_head(x)
         return logit_preds, num_preds
-
-
-### Define collator and data loaders
-def define_masked_num_collator(pad_token_id, mask_token_id, mlm_probability):
-    def masked_num_collator(batch):
-        x = [torch.tensor(sample["input_ids"]) for sample in batch]
-        x_num = [torch.tensor(sample["numbers"]) for sample in batch]
-        x = pad_sequence(x, batch_first=True, padding_value=pad_token_id)
-        x_num = pad_sequence(x_num, batch_first=True, padding_value=1)
-        probability_matrix = torch.full(x.shape, mlm_probability)
-        mask = torch.bernoulli(probability_matrix).bool()
-        y = x.clone()
-        y_num = x_num.clone()
-        y[~mask] = -100
-        x[mask] = mask_token_id
-        x_num[mask] = 1
-        return {"x": x, "x_num": x_num, "y": y, "y_num": y_num, "mask": mask}
-
-    return masked_num_collator
