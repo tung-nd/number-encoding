@@ -25,8 +25,8 @@ trainer:
     class_path: lightning.pytorch.loggers.wandb.WandbLogger
     init_args:
       project: 'number-encoding'
-      save_dir: ${trainer.default_root_dir}/xval_default
-      name: xval_default
+      save_dir: ${trainer.default_root_dir}/xval_pos_after_mult
+      name: xval_pos_after_mult
 
   callbacks:
     - class_path: lightning.pytorch.callbacks.LearningRateMonitor
@@ -35,7 +35,7 @@ trainer:
 
     - class_path: lightning.pytorch.callbacks.ModelCheckpoint
       init_args:
-        dirpath: "${trainer.default_root_dir}/xval_default/checkpoints"
+        dirpath: "${trainer.default_root_dir}/xval_pos_after_mult/checkpoints"
         monitor: "val/loss" # name of the logged metric which determines when model is improving
         mode: "min" # "max" means higher metric value is better, can be also "min"
         save_top_k: 1 # save k best models (determined by above metric)
