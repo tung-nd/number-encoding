@@ -58,7 +58,7 @@ def construct_dataset(num_digit, max_sequence):
 
 def reformat_input(inputs):
     target = inputs[0] * inputs[1]
-    str_input = f'What is {inputs[0]} times {inputs[1]}? Answer {target}.'
+    str_input = f'{inputs[0]} times {inputs[1]} is {target}'
     return str_input
 
 
