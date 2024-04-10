@@ -1,0 +1,90 @@
+seed_everything: 42
+
+# ---------------------------- TRAINER -------------------------------------------
+trainer:
+  default_root_dir: ${oc.env:OUTPUT_DIR,/home/tungnd/xVal/experiments/multiplication}
+
+  precision: 32
+
+  devices: 1
+  num_nodes: 1
+  accelerator: gpu
+  strategy: ddp_find_unused_parameters_true
+
+  max_epochs: 30
+  enable_progress_bar: true
+
+  sync_batchnorm: True
+  enable_checkpointing: True
+  num_sanity_val_steps: 1
+
+  # debugging
+  fast_dev_run: false
+
+  logger:
+    class_path: lightning.pytorch.loggers.wandb.WandbLogger
+    init_args:
+      project: 'number-encoding'
+      save_dir: ${trainer.default_root_dir}/number_mlp_embedding
+      name: number_mlp_embedding
+
+  callbacks:
+    - class_path: lightning.pytorch.callbacks.LearningRateMonitor
+      init_args:
+        logging_interval: "step"
+
+    - class_path: lightning.pytorch.callbacks.ModelCheckpoint
+      init_args:
+        dirpath: "${trainer.default_root_dir}/number_mlp_embedding/checkpoints"
+        monitor: "val/loss_5_by_5" # name of the logged metric which determines when model is improving
+        mode: "min" # "max" means higher metric value is better, can be also "min"
+        save_top_k: 1 # save k best models (determined by above metric)
+        save_last: True # additionaly always save model from last epoch
+        verbose: False
+        filename: "epoch_{epoch:03d}"
+        auto_insert_metric_name: False
+
+    - class_path: lightning.pytorch.callbacks.EarlyStopping
+      init_args:
+        monitor: "val/loss_5_by_5" # name of the logged metric which determines when model is improving
+        mode: "min" # "max" means higher metric value is better, can be also "min"
+        patience: 10 # how many validation epochs of not improving until training stops
+        min_delta: 0. # minimum change in the monitored metric needed to qualify as an improvement
+
+    - class_path: lightning.pytorch.callbacks.RichModelSummary
+      init_args:
+        max_depth: -1
+
+    - class_path: lightning.pytorch.callbacks.TQDMProgressBar
+
+# ---------------------------- MODEL -------------------------------------------
+model:
+  tokenizer_path: multi_tokenizer.json
+  lr: 5e-4
+  beta_1: 0.9
+  beta_2: 0.99
+  weight_decay: 1e-5
+  warmup_epochs: 1
+  max_epochs: 30
+  warmup_start_lr: 1e-8
+  eta_min: 2e-6
+
+  net:
+    class_path: src.models.hub.numformer_mlp.NumformerMLP
+    init_args:
+      vocab_size: 6
+      nhead: 6
+      num_layers: 6
+      d_model: 768
+      dim_feedforward: 3072
+      context_length: 10
+      norm_first: True
+
+# ---------------------------- DATA -------------------------------------------
+data:
+  data_root: /home/tungnd/xVal/dataset
+  tokenizer_path: multi_tokenizer.json
+  num_digit: 5
+  batch_size: 1024
+  num_workers: 4
+  pin_memory: False
