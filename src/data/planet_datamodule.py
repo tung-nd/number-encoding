@@ -18,9 +18,9 @@ def define_masked_num_collator(pad_token_id, mask_token_id, mlm_probability):
         mask = torch.bernoulli(probability_matrix).bool()
         y = x.clone()
         y_num = x_num.clone()
-        y[~mask] = -100
-        x[mask] = mask_token_id
-        x_num[mask] = 1
+        y[~mask] = -100 # so that unmasked tokens are not used for loss calculation
+        x[mask] = mask_token_id # replace actual tokens with mask token
+        x_num[mask] = 1 # replace actual number values with 1
         return {"x": x, "x_num": x_num, "y": y, "y_num": y_num, "mask": mask}
 
     return masked_num_collator

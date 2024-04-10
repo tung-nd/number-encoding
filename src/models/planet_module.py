@@ -43,11 +43,11 @@ class PlanetModule(LightningModule):
         loss_mlm = F.cross_entropy(
             logit_preds.view(-1, logit_preds.size(-1)),
             batch["y"].view(-1),
-            ignore_index=-100,
+            ignore_index=-100, # ignore unmasked tokens
             reduction="mean",
         )
         
-        num_mask = batch['y'] == self.num_token_id
+        num_mask = batch['y'] == self.num_token_id # ids of masked tokens that are numbers
         loss_num = F.mse_loss(
             num_preds[num_mask],
             batch["y_num"][num_mask].view(-1,1),
