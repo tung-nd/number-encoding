@@ -14,7 +14,7 @@ class Numformer(nn.Module):
         layer_norm_eps=1e-05,
         batch_first=True,
         norm_first=True,
-        transformer_bias=False,
+        transformer_bias=True,
         numhead_bias=True,
         context_length=1024,
         is_causal=False,
@@ -29,7 +29,7 @@ class Numformer(nn.Module):
             layer_norm_eps=layer_norm_eps,
             batch_first=batch_first,
             norm_first=norm_first,
-            # bias=transformer_bias,
+            bias=transformer_bias,
         )
         self.encoder_stack = nn.TransformerEncoder(
             encoder_layer=encoder, num_layers=num_layers, enable_nested_tensor=False
@@ -37,9 +37,9 @@ class Numformer(nn.Module):
         self.token_embed = nn.Embedding(vocab_size, d_model)
         self.position_embed = nn.Embedding(context_length, d_model)
         self.lm_head = nn.Sequential(
-            nn.Linear(d_model, dim_feedforward, bias=transformer_bias),
+            nn.Linear(d_model, dim_feedforward),
             nn.GELU(),
-            nn.Linear(dim_feedforward, vocab_size, bias=transformer_bias),
+            nn.Linear(dim_feedforward, vocab_size),
         )
         self.num_head = nn.Sequential(
             nn.Linear(d_model, dim_feedforward, bias=numhead_bias),
