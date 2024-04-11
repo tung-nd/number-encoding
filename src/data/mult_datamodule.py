@@ -1,6 +1,7 @@
 from typing import Optional
 
 import os
+import math
 import torch
 from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data import DataLoader, Dataset
@@ -44,9 +45,21 @@ class MultiDataModule(LightningDataModule):
         
         self.save_hyperparameters()
         
+        max_value = int(math.pow(10, num_digit)) - 1  # Maximum multiplicand value based on num_digit
+        self.product_min_value = 1  # Minimum product value
+        self.product_max_value = (max_value ** 2)  # Maximum possible product value
+        
         self.data_train: Optional[Dataset] = None
         self.data_val: Optional[Dataset] = None
         self.data_test: Optional[Dataset] = None
+    
+    def denormalize(self, normalized_number):
+        """Denormalize a number from the range [-5, 5] back to its original scale."""
+        # return (normalized_number + 5) / 10 * (self.product_max_value - self.product_min_value) + self.product_min_value
+        log_min_val = math.log(self.product_min_value)
+        log_max_val = math.log(self.product_max_value)
+        log_value = normalized_number * (log_max_val - log_min_val) + log_min_val
+        return torch.exp(log_value)
         
     def setup(self, stage: Optional[str] = None) -> None:
         # load datasets only if they're not loaded already

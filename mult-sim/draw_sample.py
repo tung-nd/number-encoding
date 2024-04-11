@@ -8,9 +8,23 @@ from random import randrange
 from pathlib import Path
 import csv
 
-
 random.seed(0)
 
+def normalize(number, min_value, max_value):
+    """Normalize a number to the range [-5, 5]."""
+    # return (number - min_value) / (max_value - min_value) * 10 - 5
+    log_min_val = math.log(min_value)
+    log_max_val = math.log(max_value)
+    log_value = math.log(number)
+    return (log_value - log_min_val) / (log_max_val - log_min_val)
+
+def denormalize(normalized_number, min_value, max_value):
+    """Denormalize a number from the range [-5, 5] back to its original scale."""
+    # return (normalized_number + 5) / 10 * (max_value - min_value) + min_value
+    log_min_val = math.log(min_value)
+    log_max_val = math.log(max_value)
+    log_value = normalized_number * (log_max_val - log_min_val) + log_min_val
+    return math.exp(log_value)
 
 def all_n_digit(num_digit):
     return list(range(int(math.pow(10, num_digit - 1)), int(math.pow(10, num_digit))))
@@ -33,13 +47,6 @@ def sample(a_num_digit, b_num_digit, max_sequence):
             inputs.add((a, b))
     return list(inputs)
 
-
-def count_tokens_per_example(gpt2_tokenizer, example):
-    tokenizer = gpt2_tokenizer.from_pretrained("gpt2")
-    number_of_tokens = len(tokenizer(example)['input_ids'])
-    return number_of_tokens
-
-
 def construct_dataset(num_digit, max_sequence):
     digits = list(range(1, num_digit + 1))
     datasets = {}
@@ -55,20 +62,32 @@ def construct_dataset(num_digit, max_sequence):
             datasets[name] = inputs
     return datasets
 
-
-def reformat_input(inputs):
-    target = inputs[0] * inputs[1]
-    str_input = f'{inputs[0]} times {inputs[1]} is {target}'
-    return str_input
-
-
 num_digit = 5
 max_sequence = 125000
 train_ratio = 0.8
 val_ratio = 0.1
 test_ratio = 0.1
 
+# Dynamically calculate min and max values for normalization based on num_digit
+min_value = 1  # Minimum multiplicand value
+max_value = int(math.pow(10, num_digit)) - 1  # Maximum multiplicand value based on num_digit
+product_min_value = 1  # Minimum product value
+product_max_value = (max_value ** 2)  # Maximum possible product value
+
 datasets = construct_dataset(num_digit, max_sequence)
+
+
+def reformat_input(inputs):
+    a, b = inputs
+    # Normalize multiplicands
+    # a_norm = normalize(a, min_value, max_value)
+    # b_norm = normalize(b, min_value, max_value)
+    # Calculate and normalize product
+    product = a * b
+    product_norm = normalize(product, product_min_value, product_max_value)
+    str_input = f'{a} times {b} is {product_norm}'
+    return str_input
+
 
 # hold out val and test
 train_datasets = {}

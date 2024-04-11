@@ -25,8 +25,8 @@ trainer:
     class_path: lightning.pytorch.loggers.wandb.WandbLogger
     init_args:
       project: 'number-encoding'
-      save_dir: ${trainer.default_root_dir}/number_mlp_embedding
-      name: number_mlp_embedding
+      save_dir: ${trainer.default_root_dir}/multi_number_mlp_embedding_normalized_target_with_log
+      name: multi_number_mlp_embedding_normalized_target_with_log
 
   callbacks:
     - class_path: lightning.pytorch.callbacks.LearningRateMonitor
@@ -35,7 +35,7 @@ trainer:
 
     - class_path: lightning.pytorch.callbacks.ModelCheckpoint
       init_args:
-        dirpath: "${trainer.default_root_dir}/number_mlp_embedding/checkpoints"
+        dirpath: "${trainer.default_root_dir}/multi_number_mlp_embedding_normalized_target_with_log/checkpoints"
         monitor: "val/loss_5_by_5" # name of the logged metric which determines when model is improving
         mode: "min" # "max" means higher metric value is better, can be also "min"
         save_top_k: 1 # save k best models (determined by above metric)
@@ -44,12 +44,12 @@ trainer:
         filename: "epoch_{epoch:03d}"
         auto_insert_metric_name: False
 
-    - class_path: lightning.pytorch.callbacks.EarlyStopping
-      init_args:
-        monitor: "val/loss_5_by_5" # name of the logged metric which determines when model is improving
-        mode: "min" # "max" means higher metric value is better, can be also "min"
-        patience: 10 # how many validation epochs of not improving until training stops
-        min_delta: 0. # minimum change in the monitored metric needed to qualify as an improvement
+    # - class_path: lightning.pytorch.callbacks.EarlyStopping
+    #   init_args:
+    #     monitor: "val/loss_5_by_5" # name of the logged metric which determines when model is improving
+    #     mode: "min" # "max" means higher metric value is better, can be also "min"
+    #     patience: 10 # how many validation epochs of not improving until training stops
+    #     min_delta: 0. # minimum change in the monitored metric needed to qualify as an improvement
 
     - class_path: lightning.pytorch.callbacks.RichModelSummary
       init_args:

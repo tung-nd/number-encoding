@@ -3,6 +3,7 @@ import torch
 import torch.nn.functional as F
 from transformers import PreTrainedTokenizerFast
 from lightning import LightningModule
+from sklearn.metrics import r2_score
 
 from src.models.hub.numformer import Numformer
 from src.models.hub.numformer_mlp import NumformerMLP
@@ -64,15 +65,16 @@ class MultiModule(LightningModule):
         dataset_name = batch["dataset_name"]
         
         num_mask = batch['y'] == self.num_token_id # ids of masked tokens that are numbers
-        loss = F.mse_loss(
-            num_preds[num_mask],
-            batch["y_num"][num_mask].view(-1,1),
-            reduction="mean",
-        )
+        num_preds = num_preds[num_mask]
+        num_preds = self.trainer.datamodule.denormalize(num_preds)
+        target = batch["y_num"][num_mask].view(-1,1)
+        target = self.trainer.datamodule.denormalize(target)
+        r2 = r2_score(target.cpu().squeeze().numpy(), num_preds.cpu().squeeze().numpy())
+        adjusted_r2_score = 1 - (1 - r2) * (len(target) - 1) / (len(target) - 1 - 1)
             
         self.log(
             f"val/loss_{dataset_name}",
-            loss.item(),
+            adjusted_r2_score,
             on_step=False,
             on_epoch=True,
             sync_dist=True,
